@@ -91,6 +91,14 @@ func (toolbox *Toolbox) serve(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (toolbox *Toolbox) serveFrame(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/png")
+	w.Header().Set("Cache-Control", "private, max-age=0")
+	if toolbox.imgAsPNG != nil {
+		w.Write(*toolbox.imgAsPNG)
+	}
+}
+
 func (toolbox *Toolbox) serverAction(w http.ResponseWriter, r *http.Request) {
 	postData := actionFromRemote{}
 	decoder := json.NewDecoder(r.Body)
@@ -104,8 +112,16 @@ func (toolbox *Toolbox) startServer() {
 	r.HandleFunc("/", toolbox.serve)
 	r.HandleFunc("/index.html", toolbox.serve)
 	r.HandleFunc("/index.htm", toolbox.serve)
+
+	hub := newHub()
+	go hub.run()
+
+	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		serveWs(hub, w, r)
+	})
 	r.HandleFunc("/actions", toolbox.serverAction).Methods("POST")
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(restrictedFilesystem{http.Dir(filepath.Join(expandHomeDir(toolbox.appConfig.Paths.Web), "static"))})))
+	r.HandleFunc("/frame.png", toolbox.serveFrame).Methods("GET")
 
 	srv := &http.Server{
 		Handler:      r,

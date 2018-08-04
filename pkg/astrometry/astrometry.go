@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 package astrometry /* import "r2discover.com/go/eaa-toolbox/pkg/astrometry" */
 
 // Package to allow the use of the command line utilities from Astrometry.net

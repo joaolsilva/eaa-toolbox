@@ -36,13 +36,15 @@ type Screen struct {
 }
 
 type Toolbox struct {
+	webcam        *gocv.VideoCapture
+	hasCamera     bool
 	ShouldQuit    bool
 	serverStarted bool
 	screen        Screen
-	window        *gocv.Window
 	writer        *gocv.VideoWriter
 	fps           float64
 	img           *gocv.Mat
+	imgAsPNG      *[]byte
 	solver        *astrometry.Solver
 	goTo          struct {
 		RA  float64
@@ -72,15 +74,26 @@ func NewToolbox() *Toolbox {
 
 	toolbox.solver = astrometry.NewSolver()
 	toolbox.appConfig = LoadAppConfig()
+	img := gocv.NewMat()
+	toolbox.img = &img
 
 	return &toolbox
 }
 
 func (toolbox *Toolbox) Start() {
+	log.Print("toolbox.Start()")
 	go toolbox.startServer()
-	err := webview.Open("EAA Toolbox", "http://127.0.0.1:32243/index.html", 800, 600, true)
-	if err != nil {
-		log.Printf("%v", err)
-		return
-	}
+
+	w := webview.New(webview.Settings{
+		Title:     "EAA Toolbox",
+		URL:       "http://127.0.0.1:32243/index.html",
+		Width:     800,
+		Height:    600,
+		Resizable: true,
+		Debug:     toolbox.appConfig.Settings.Debug,
+	})
+	defer w.Exit()
+
+	toolbox.startCapture()
+	w.Run()
 }

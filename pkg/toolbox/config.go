@@ -41,6 +41,10 @@ type AppConfig struct {
 		VSOP87 string
 		Web    string
 	}
+
+	Settings struct {
+		Debug bool
+	}
 }
 
 func LoadAppConfig() (appConfig AppConfig) {
