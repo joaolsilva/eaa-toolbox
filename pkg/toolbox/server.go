@@ -79,11 +79,8 @@ func (toolbox *Toolbox) serve(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	data := templateData{}
-	data.Position = toolbox.screen.Position
-	data.GoTo = toolbox.screen.GoTo
 
-	err = t.Execute(w, data)
+	err = t.Execute(w, nil)
 	if err != nil {
 		log.Printf("toolbox.serve: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -114,6 +111,7 @@ func (toolbox *Toolbox) startServer() {
 	r.HandleFunc("/index.htm", toolbox.serve)
 
 	hub := newHub(toolbox)
+	toolbox.hub = hub
 	go hub.run()
 
 	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +123,7 @@ func (toolbox *Toolbox) startServer() {
 
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         "127.0.0.1:32243",
+		Addr:         "0.0.0.0:32243",
 		WriteTimeout: 30 * time.Second,
 		ReadTimeout:  30 * time.Second,
 	}

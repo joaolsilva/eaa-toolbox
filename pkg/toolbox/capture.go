@@ -27,6 +27,9 @@ func (toolbox *Toolbox) capture() {
 
 		buffer, _ := gocv.IMEncode(".png", *toolbox.img)
 		toolbox.imgAsPNG = &buffer
+		if toolbox.recorder.isRecording {
+			toolbox.recorder.SavePNG(toolbox.imgAsPNG)
+		}
 	}
 }
 

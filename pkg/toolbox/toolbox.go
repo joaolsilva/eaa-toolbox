@@ -17,6 +17,8 @@ limitations under the License.
 package toolbox /* import "r2discover.com/go/eaa-toolbox/pkg/toolbox" */
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/soniakeys/meeus/v3/coord"
 	"github.com/soniakeys/meeus/v3/globe"
 	"github.com/soniakeys/meeus/v3/julian"
@@ -30,18 +32,20 @@ import (
 	"time"
 )
 
-type Screen struct {
-	Position string
-	GoTo     string
+type State struct {
+	CurrentPosition string
+	GoToPosition    string
+	Message         string
 }
 
 type Toolbox struct {
 	webcam        *gocv.VideoCapture
 	hasCamera     bool
 	ShouldQuit    bool
+	hub           *Hub
 	serverStarted bool
-	screen        Screen
-	writer        *gocv.VideoWriter
+	recorder      *Recorder
+	state         State
 	fps           float64
 	img           *gocv.Mat
 	imgAsPNG      *[]byte
@@ -76,6 +80,8 @@ func NewToolbox() *Toolbox {
 	toolbox.appConfig = LoadAppConfig()
 	img := gocv.NewMat()
 	toolbox.img = &img
+	recorder := Recorder{}
+	toolbox.recorder = &recorder
 
 	return &toolbox
 }
@@ -103,7 +109,45 @@ func (toolbox *Toolbox) processCommand(command string) {
 	case "PLATE_SOLVING":
 		gocv.IMWrite("/tmp/eaa.png", *toolbox.img)
 		toolbox.solver.StartFieldSolver("/tmp/eaa.png")
+		toolbox.hub.Broadcast(toolbox.stateJSON())
+	case "START_RECORDING":
+		if toolbox.recorder.isRecording {
+			break
+		}
+
+		toolbox.recorder.Initialize(toolbox.appConfig.Paths.Recordings)
+		toolbox.recorder.isRecording = true
+		toolbox.state.Message = "Recording..."
+		toolbox.hub.Broadcast(toolbox.stateJSON())
+	case "STOP_RECORDING":
+		if !toolbox.recorder.isRecording {
+			break
+		}
+
+		toolbox.recorder.isRecording = false
+		toolbox.state.Message = ""
+		toolbox.hub.Broadcast(toolbox.stateJSON())
+	case "REFRESH":
+
+		if toolbox.solver.IsSolving() {
+			toolbox.state.CurrentPosition = "Solving..."
+		} else if toolbox.solver.RA != 0.0 || toolbox.solver.Dec != 0.0 {
+			currentPosition := RADecToHoriz(toolbox.solver.RA, toolbox.solver.Dec, toolbox.appConfig.Location.Latitude, toolbox.appConfig.Location.Longitude)
+			toolbox.state.CurrentPosition = fmt.Sprintf("Pos: RA %.3f Dec %.3f Alt %.1f Az %.1f", toolbox.solver.RA, toolbox.solver.Dec, currentPosition.Alt.Deg(), currentPosition.Az.Deg())
+		} else {
+			toolbox.state.CurrentPosition = "Solver failed"
+		}
+
+		toolbox.hub.Broadcast(toolbox.stateJSON())
 	default:
 		log.Printf("toolbox.processCommand: Unknown command: %v", command)
 	}
+}
+
+func (toolbox *Toolbox) stateJSON() []byte {
+	state, err := json.Marshal(toolbox.state)
+	if err != nil {
+		return []byte{}
+	}
+	return state
 }

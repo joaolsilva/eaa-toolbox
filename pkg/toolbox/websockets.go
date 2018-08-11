@@ -129,8 +129,8 @@ func (c *Client) readPump() {
 	}
 }
 
-func (c *Client) Broadcast(message []byte) {
-	c.hub.broadcast <- message
+func (h *Hub) Broadcast(message []byte) {
+	h.broadcast <- message
 }
 
 func (c *Client) writePump() {

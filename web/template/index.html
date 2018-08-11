@@ -125,13 +125,17 @@
                   <li class="nav-item">
                     <a href="javascript:void(0)" class="nav-link" data-toggle="dropdown"><i class="fe fe-video"></i> Capture</a>
                     <div class="dropdown-menu dropdown-menu-arrow">
-                      <a href="./cards.html" class="dropdown-item ">Start recording</a>
+                      <a href=".#START_RECORDING" data-command="START_RECORDING" class="dropdown-item toolbox-command">Start recording</a>
+                      <a href=".#STOP_RECORDING" data-command="STOP_RECORDING" class="dropdown-item toolbox-command"><i class="fe fe-video-off"></i> Stop recording</a>
                       <a href="./charts.html" class="dropdown-item ">Charts</a>
                       <a href="./pricing-cards.html" class="dropdown-item ">Pricing cards</a>
                     </div>
                   </li>
                   <li class="nav-item dropdown">
-                    <a href="./form-elements.html" data-command="PLATE_SOLVING" class="nav-link toolbox-command"><i class="fe fe-layers"></i> Plate Solving</a>
+                    <a href="#PLATE_SOLVING" data-command="PLATE_SOLVING" class="nav-link toolbox-command"><i class="fe fe-layers"></i> Plate Solving</a>
+                  </li>
+                  <li class="nav-item dropdown">
+                    <a href="#REFRESH" data-command="REFRESH" class="nav-link toolbox-command"><i class="fe fe-refresh-ccw"></i> Refresh</a>
                   </li>
                   <li class="nav-item dropdown">
                     <a href="javascript:void(0)" class="nav-link" data-toggle="dropdown"><i class="fe fe-map"></i> Go To</a>
@@ -173,6 +177,9 @@
                 Dashboard
               </h1>
             </div>
+            <h2>Position: <span id="current-position"></span></h2>
+            <h2>GoTo: <span id="goto-position"></span></h2>
+            <h2><span id="toolbox-message"></span></h2>
             <div class="row row-cards">
               <div class="col-lg-12">
                 <img src="/frame.png" />
@@ -235,8 +242,11 @@
             };
             conn.onmessage = function (evt) {
                 console.log("on message: " + evt.data);
-                var messages = evt.data.split('\n');
-                console.log(messages);
+                data = JSON.parse(evt.data);
+                console.log("data " + data);
+                $("#current-position").html(data.CurrentPosition);
+                $("#goto-position").html(data.GoToPosition);
+                $("#toolbox-message").html(data.Message);
             };
 
             $(".toolbox-command").on("click", function(e) {

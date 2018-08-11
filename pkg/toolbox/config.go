@@ -38,8 +38,9 @@ type AppConfig struct {
 		LimitingMagnitude float64
 	}
 	Paths struct {
-		VSOP87 string
-		Web    string
+		VSOP87     string
+		Web        string
+		Recordings string
 	}
 
 	Settings struct {
