@@ -35,14 +35,17 @@ type Hub struct {
 
 	// Unregister requests from clients.
 	unregister chan *Client
+
+	toolbox *Toolbox
 }
 
-func newHub() *Hub {
+func newHub(toolbox *Toolbox) *Hub {
 	return &Hub{
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
+		toolbox:    toolbox,
 	}
 }
 
@@ -120,10 +123,14 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		log.Printf("received %v", message)
+		log.Printf("received %v", string(message))
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.broadcast <- message
+		c.hub.toolbox.processCommand(string(message))
 	}
+}
+
+func (c *Client) Broadcast(message []byte) {
+	c.hub.broadcast <- message
 }
 
 func (c *Client) writePump() {
@@ -148,7 +155,6 @@ func (c *Client) writePump() {
 				log.Printf("err %v", err)
 				return
 			}
-			log.Printf("write %v", message)
 			w.Write(message)
 
 			// Add queued chat messages to the current websocket message.

@@ -113,7 +113,7 @@ func (toolbox *Toolbox) startServer() {
 	r.HandleFunc("/index.html", toolbox.serve)
 	r.HandleFunc("/index.htm", toolbox.serve)
 
-	hub := newHub()
+	hub := newHub(toolbox)
 	go hub.run()
 
 	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {

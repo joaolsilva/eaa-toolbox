@@ -97,3 +97,13 @@ func (toolbox *Toolbox) Start() {
 	toolbox.startCapture()
 	w.Run()
 }
+
+func (toolbox *Toolbox) processCommand(command string) {
+	switch command {
+	case "PLATE_SOLVING":
+		gocv.IMWrite("/tmp/eaa.png", *toolbox.img)
+		toolbox.solver.StartFieldSolver("/tmp/eaa.png")
+	default:
+		log.Printf("toolbox.processCommand: Unknown command: %v", command)
+	}
+}

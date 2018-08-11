@@ -131,7 +131,7 @@
                     </div>
                   </li>
                   <li class="nav-item dropdown">
-                    <a href="./form-elements.html" class="nav-link"><i class="fe fe-layers"></i> Plate Solving</a>
+                    <a href="./form-elements.html" data-command="PLATE_SOLVING" class="nav-link toolbox-command"><i class="fe fe-layers"></i> Plate Solving</a>
                   </li>
                   <li class="nav-item dropdown">
                     <a href="javascript:void(0)" class="nav-link" data-toggle="dropdown"><i class="fe fe-map"></i> Go To</a>
@@ -238,6 +238,11 @@
                 var messages = evt.data.split('\n');
                 console.log(messages);
             };
+
+            $(".toolbox-command").on("click", function(e) {
+                window.conn.send($(this).data("command"));
+                return false;
+            });
         });
       });
     </script>
