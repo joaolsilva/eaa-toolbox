@@ -46,6 +46,35 @@ const (
 	LittleEndian Endianness = 1
 )
 
+func (c ColorID) String() string {
+	switch c {
+	case ColorID_MONO:
+		return "Mono"
+	case ColorID_BAYER_RGGB:
+		return "Bayer RGGB"
+	case ColorID_BAYER_GRBG:
+		return "Bayer GRBG"
+	case ColorID_BAYER_GBRG:
+		return "Bayer GRBG"
+	case ColorID_BAYER_BGGR:
+		return "Bayer BGGR"
+	case ColorID_BAYER_CYYM:
+		return "Bayer CYYM"
+	case ColorID_BAYER_YCMY:
+		return "Bayer YCMY"
+	case ColorID_BAYER_YMCY:
+		return "Bayer YMCY"
+	case ColorID_BAYER_MYYC:
+		return "Bayer MYYC"
+	case ColorID_RGB:
+		return "RGB"
+	case ColorID_BGR:
+		return "BGR"
+	default:
+		return "Unknown ColorID"
+	}
+}
+
 var FileSignature [14]byte
 
 type Header struct {
@@ -91,55 +120,7 @@ func init() {
 
 func (ser *SER) generateHeader() []byte {
 	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, ser.Header.FileID)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.LuID)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.ColorID)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.Endianness)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.ImageWidth)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.ImageHeight)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.PixelDepthPerPlane)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.FrameCount)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.Observer)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.Instrument)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.Telescope)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.DateTime)
-	if err != nil {
-		log.Printf("ser.createFile: %v", err)
-	}
-	err = binary.Write(buf, binary.LittleEndian, ser.Header.DateTimeUTC)
+	err := binary.Write(buf, binary.LittleEndian, ser.Header)
 	if err != nil {
 		log.Printf("ser.createFile: %v", err)
 	}
@@ -163,61 +144,11 @@ func LoadHeader(filename string) (header Header, err error) {
 
 	buf := bufio.NewReader(f)
 
-	err = binary.Read(buf, binary.LittleEndian, &header.FileID)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
 
-	err = binary.Read(buf, binary.LittleEndian, &header.LuID)
+	err = binary.Read(buf, binary.LittleEndian, &header)
 	if err != nil {
 		log.Printf("ser.LoadHeader: %v", err)
 	}
-
-	err = binary.Read(buf, binary.LittleEndian, &header.ColorID)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-	err = binary.Read(buf, binary.LittleEndian, &header.Endianness)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-	err = binary.Read(buf, binary.LittleEndian, &header.ImageWidth)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-	err = binary.Read(buf, binary.LittleEndian, &header.ImageHeight)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-	err = binary.Read(buf, binary.LittleEndian, &header.PixelDepthPerPlane)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-	err = binary.Read(buf, binary.LittleEndian, &header.FrameCount)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-	err = binary.Read(buf, binary.LittleEndian, &header.Observer)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-	err = binary.Read(buf, binary.LittleEndian, &header.Instrument)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-	err = binary.Read(buf, binary.LittleEndian, &header.Telescope)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-	err = binary.Read(buf, binary.LittleEndian, &header.DateTime)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-	err = binary.Read(buf, binary.LittleEndian, &header.DateTimeUTC)
-	if err != nil {
-		log.Printf("ser.LoadHeader: %v", err)
-	}
-
 	return header, nil
 }
 
