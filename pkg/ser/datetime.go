@@ -28,3 +28,7 @@ const (
 func DateTimeNow() DateTime {
 	return DateTime((time.Now().UnixNano() / 100) + unixOffset*1E7)
 }
+
+func TimeFromDateTime(dateTime DateTime) time.Time {
+	return time.Unix(0, (int64(dateTime) - unixOffset*1E7) * 100)
+}

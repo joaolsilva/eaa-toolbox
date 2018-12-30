@@ -21,6 +21,9 @@ import (
 	"encoding/binary"
 	"io/ioutil"
 	"log"
+	"os"
+	"bufio"
+	"fmt"
 )
 
 type ColorID int32
@@ -47,7 +50,7 @@ var FileSignature [14]byte
 
 type Header struct {
 	FileID             [14]byte // File Signature
-	LuID               int32
+	LuID               int32    // Lumenera camera series ID (unused)
 	ColorID            ColorID
 	Endianness         Endianness
 	ImageWidth         int32
@@ -63,11 +66,11 @@ type Header struct {
 
 type SER struct {
 	Header   Header
-	Filename string
+	filename string
 }
 
 func New(filename string, imageWidth int32, imageHeight int32) *SER {
-	s := SER{Filename: filename}
+	s := SER{filename: filename}
 	s.Header = Header{}
 	s.Header.FileID = FileSignature
 	s.Header.ColorID = ColorID_RGB
@@ -75,6 +78,7 @@ func New(filename string, imageWidth int32, imageHeight int32) *SER {
 	s.Header.ImageWidth = imageWidth
 	s.Header.ImageHeight = imageHeight
 	s.Header.PixelDepthPerPlane = 3
+	s.Header.DateTimeUTC = DateTimeNow()
 
 	s.createFile()
 
@@ -82,7 +86,7 @@ func New(filename string, imageWidth int32, imageHeight int32) *SER {
 }
 
 func init() {
-	copy(FileSignature[:], "LUNACAM-RECORDER")
+	copy(FileSignature[:], "LUCAM-RECORDER")
 }
 
 func (ser *SER) generateHeader() []byte {
@@ -143,5 +147,107 @@ func (ser *SER) generateHeader() []byte {
 }
 
 func (ser *SER) createFile() {
-	ioutil.WriteFile(ser.Filename, ser.generateHeader(), 0640)
+	ioutil.WriteFile(ser.filename, ser.generateHeader(), 0640)
+}
+
+
+func LoadHeader(filename string) (header Header, err error) {
+	header = Header{}
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Printf("LoadHeader: %v", err)
+		return header, err
+	}
+
+	defer f.Close()
+
+	buf := bufio.NewReader(f)
+
+	err = binary.Read(buf, binary.LittleEndian, &header.FileID)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+
+	err = binary.Read(buf, binary.LittleEndian, &header.LuID)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+
+	err = binary.Read(buf, binary.LittleEndian, &header.ColorID)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.Endianness)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.ImageWidth)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.ImageHeight)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.PixelDepthPerPlane)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.FrameCount)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.Observer)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.Instrument)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.Telescope)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.DateTime)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+	err = binary.Read(buf, binary.LittleEndian, &header.DateTimeUTC)
+	if err != nil {
+		log.Printf("ser.LoadHeader: %v", err)
+	}
+
+	return header, nil
+}
+
+func Open(filename string) (ser *SER, err error) {
+
+	s := SER{filename: filename}
+
+
+	s.Header, err = LoadHeader(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.Header.FileID != FileSignature {
+		return nil, fmt.Errorf("Invalid .SER file")
+	}
+
+	return &s, nil
+}
+
+func FixedStringToString(fixed [40]byte) string {
+	s := ""
+	for _,c := range fixed {
+		if c == 0 {
+			return s
+		}
+		if c >= 32 && c <= 126 {
+			s += string(c)
+		}
+	}
+
+	return s
 }
