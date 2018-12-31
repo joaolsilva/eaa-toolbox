@@ -28,11 +28,20 @@ func (toolbox *Toolbox) capture() {
 			continue
 		}
 
-		//ImageChanged(toolbox.img)
-		buffer, _ := gocv.IMEncode(".png", *toolbox.img)
-		toolbox.imgAsPNG = &buffer
-		if toolbox.recorder.isRecording {
-			toolbox.recorder.SavePNG(toolbox.imgAsPNG)
+		if ImageChanged(toolbox.img) {
+			runningAverage, err := GetRunningAverage()
+			ResetRunningAverage(toolbox.img)
+			if err != nil {
+				continue
+			}
+
+			buffer, _ := gocv.IMEncode(".png", runningAverage)
+			toolbox.imgAsPNG = &buffer
+			if toolbox.recorder.isRecording {
+				toolbox.recorder.SavePNG(toolbox.imgAsPNG)
+			}
+		} else {
+			AddToRunningAverage(toolbox.img)
 		}
 	}
 }
