@@ -24,7 +24,11 @@ import (
 func (toolbox *Toolbox) capture() {
 	for {
 		toolbox.webcam.Read(toolbox.img)
+		if toolbox.img == nil {
+			continue
+		}
 
+		//ImageChanged(toolbox.img)
 		buffer, _ := gocv.IMEncode(".png", *toolbox.img)
 		toolbox.imgAsPNG = &buffer
 		if toolbox.recorder.isRecording {

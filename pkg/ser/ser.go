@@ -17,13 +17,13 @@ limitations under the License.
 package ser /* import "r2discover.com/go/eaa-toolbox/pkg/ser" */
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"bufio"
-	"fmt"
 )
 
 type ColorID int32
@@ -131,7 +131,6 @@ func (ser *SER) createFile() {
 	ioutil.WriteFile(ser.filename, ser.generateHeader(), 0640)
 }
 
-
 func LoadHeader(filename string) (header Header, err error) {
 	header = Header{}
 	f, err := os.Open(filename)
@@ -144,7 +143,6 @@ func LoadHeader(filename string) (header Header, err error) {
 
 	buf := bufio.NewReader(f)
 
-
 	err = binary.Read(buf, binary.LittleEndian, &header)
 	if err != nil {
 		log.Printf("ser.LoadHeader: %v", err)
@@ -155,7 +153,6 @@ func LoadHeader(filename string) (header Header, err error) {
 func Open(filename string) (ser *SER, err error) {
 
 	s := SER{filename: filename}
-
 
 	s.Header, err = LoadHeader(filename)
 	if err != nil {
@@ -171,7 +168,7 @@ func Open(filename string) (ser *SER, err error) {
 
 func FixedStringToString(fixed [40]byte) string {
 	s := ""
-	for _,c := range fixed {
+	for _, c := range fixed {
 		if c == 0 {
 			return s
 		}

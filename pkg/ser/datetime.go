@@ -30,5 +30,5 @@ func DateTimeNow() DateTime {
 }
 
 func TimeFromDateTime(dateTime DateTime) time.Time {
-	return time.Unix(0, (int64(dateTime) - unixOffset*1E7) * 100)
+	return time.Unix(0, (int64(dateTime)-unixOffset*1E7)*100)
 }
