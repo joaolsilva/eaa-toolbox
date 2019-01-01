@@ -42,7 +42,7 @@ func ResetRunningAverage(img *gocv.Mat) {
 		m := img.Clone()
 		runningAverage = &m
 	} else {
-		img.CopyTo(*runningAverage)
+		img.CopyTo(runningAverage)
 	}
 	n = 1
 }

@@ -56,7 +56,7 @@ func ImageChanged(img *gocv.Mat) bool {
 		m := img.Clone()
 		currentImg = &m
 	} else {
-		img.CopyTo(*currentImg)
+		img.CopyTo(currentImg)
 	}
 	gocv.CvtColor(*currentImg, currentImg, gocv.ColorRGBToGray)
 
@@ -66,7 +66,7 @@ func ImageChanged(img *gocv.Mat) bool {
 	}
 
 	gocv.Subtract(*previousImg, *currentImg, deltaImg)
-	currentImg.CopyTo(*previousImg)
+	currentImg.CopyTo(previousImg)
 
 	norm := gocv.Norm(*deltaImg, gocv.NormL2)
 
